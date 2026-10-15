@@ -3,6 +3,7 @@
 import { useFormState, useFormStatus } from "react-dom";
 import { signInAction } from "@/actions/auth-actions";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ShieldCheck, Lock, Mail, ArrowRight, UserCheck } from "lucide-react";
 
@@ -21,6 +22,8 @@ function SubmitButton() {
 }
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from") || "/dashboard";
   const [state, formAction] = useFormState(signInAction, null);
   const [email, setEmail] = useState("demo@investor.com");
   const [password, setPassword] = useState("Password123!");
@@ -79,6 +82,7 @@ export default function LoginPage() {
         {/* Main Login Card */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
           <form action={formAction} className="space-y-4">
+            <input type="hidden" name="from" value={from} />
             {state?.error && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
                 {state.error}

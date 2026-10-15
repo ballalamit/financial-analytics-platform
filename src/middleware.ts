@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   if (isProtected && !hasValidSessionFormat) {
     const url = new URL("/login", request.url);
-    url.searchParams.set("from", pathname);
+    const fullTarget = pathname + (request.nextUrl.search || "");
+    url.searchParams.set("from", fullTarget);
     return NextResponse.redirect(url);
   }
 

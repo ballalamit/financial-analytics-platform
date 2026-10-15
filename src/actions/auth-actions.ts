@@ -65,7 +65,9 @@ export async function signInAction(prevState: ActionState | null, formData: Form
     return { error: "An unexpected error occurred. Please try again." };
   }
 
-  redirect("/dashboard");
+  const from = (formData.get("from") as string) || "/dashboard";
+  const safeRedirect = from.startsWith("/") && !from.startsWith("//") ? from : "/dashboard";
+  redirect(safeRedirect);
 }
 
 export async function registerAction(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
