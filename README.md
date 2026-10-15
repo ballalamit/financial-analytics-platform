@@ -169,8 +169,8 @@ This application evaluates **production engineering judgement**, security bounda
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone https://github.com/your-username/financial-platform.git
-cd financial-platform
+git clone https://github.com/ballalamit/financial-analytics-platform.git
+cd financial-analytics-platform
 npm install
 ```
 
