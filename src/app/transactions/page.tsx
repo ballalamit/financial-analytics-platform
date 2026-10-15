@@ -1,6 +1,5 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Navbar from "@/components/layout/Navbar";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionTable from "@/components/transactions/TransactionTable";
 import AuditLogViewer from "@/components/transactions/AuditLogViewer";
@@ -39,12 +38,9 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
   if (!portfolio) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <Navbar user={session} />
-        <main className="max-w-7xl mx-auto p-6 text-center text-slate-400">
-          No portfolio found for your user.
-        </main>
-      </div>
+      <main className="max-w-7xl mx-auto p-6 text-center text-slate-400">
+        No portfolio found for your user.
+      </main>
     );
   }
 
@@ -94,33 +90,29 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   const queryExecutionMs = performance.now() - startTime;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar user={session} />
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold tracking-tight text-white">Transaction Ledger Explorer</h1>
+        <p className="text-xs text-slate-400 mt-1">
+          Database-backed pagination with shareable URL state and concurrency audit trail
+        </p>
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight text-white">Transaction Ledger Explorer</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Database-backed pagination with shareable URL state and concurrency audit trail
-          </p>
-        </div>
+      {/* Filter Controls (Synchronized with URL params) */}
+      <TransactionFilters />
 
-        {/* Filter Controls (Synchronized with URL params) */}
-        <TransactionFilters />
+      {/* Main Table with Pagination */}
+      <TransactionTable
+        portfolioId={portfolio.id}
+        transactions={transactions}
+        totalCount={totalCount}
+        currentPage={page}
+        pageSize={pageSize}
+        queryExecutionMs={queryExecutionMs}
+      />
 
-        {/* Main Table with Pagination */}
-        <TransactionTable
-          portfolioId={portfolio.id}
-          transactions={transactions}
-          totalCount={totalCount}
-          currentPage={page}
-          pageSize={pageSize}
-          queryExecutionMs={queryExecutionMs}
-        />
-
-        {/* Module 6: Audit Trail Ledger */}
-        <AuditLogViewer logs={auditLogs} />
-      </main>
-    </div>
+      {/* Module 6: Audit Trail Ledger */}
+      <AuditLogViewer logs={auditLogs} />
+    </main>
   );
 }

@@ -1,6 +1,5 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Navbar from "@/components/layout/Navbar";
 import FundSelector from "@/components/funds/FundSelector";
 import FundComparisonChart from "@/components/funds/FundComparisonChart";
 import FundMetricsTable from "@/components/funds/FundMetricsTable";
@@ -20,7 +19,7 @@ interface FundsPageProps {
  * Server Component: Queries historical NAV data and computes annualized returns deterministically.
  */
 export default async function FundsPage({ searchParams }: FundsPageProps) {
-  const session = await requireAuth();
+  await requireAuth();
 
   // 1. Parse URL Parameters for shareable comparison view
   const rawFunds = searchParams.funds?.split(",").filter(Boolean) || ["TECH_GROWTH", "BLUECHIP_INDEX"];
@@ -97,30 +96,26 @@ export default async function FundsPage({ searchParams }: FundsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar user={session} />
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold tracking-tight text-white">Institutional Fund Analytics</h1>
+        <p className="text-xs text-slate-400 mt-1">
+          Comparative performance, historical NAV trajectories, and annualized CAGR calculations
+        </p>
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight text-white">Institutional Fund Analytics</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Comparative performance, historical NAV trajectories, and annualized CAGR calculations
-          </p>
-        </div>
+      {/* Selection & Horizon Controls */}
+      <FundSelector
+        availableFunds={availableFunds}
+        selectedFundCodes={activeFundCodes}
+        selectedRange={range}
+      />
 
-        {/* Selection & Horizon Controls */}
-        <FundSelector
-          availableFunds={availableFunds}
-          selectedFundCodes={activeFundCodes}
-          selectedRange={range}
-        />
+      {/* Performance Line Chart */}
+      <FundComparisonChart results={results} />
 
-        {/* Performance Line Chart */}
-        <FundComparisonChart results={results} />
-
-        {/* Matrix Table with CAGR */}
-        <FundMetricsTable results={results} />
-      </main>
-    </div>
+      {/* Matrix Table with CAGR */}
+      <FundMetricsTable results={results} />
+    </main>
   );
 }

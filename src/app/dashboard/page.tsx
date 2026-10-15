@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { getMarketQuotes } from "@/lib/market-service";
 import { getChaosMode } from "@/actions/chaos-actions";
 import { calculatePortfolioMetrics } from "@/lib/portfolio-calculator";
-import Navbar from "@/components/layout/Navbar";
 import PortfolioSummaryCards from "@/components/dashboard/PortfolioSummaryCards";
 import PortfolioChart from "@/components/dashboard/PortfolioChart";
 import MarketWidget from "@/components/dashboard/MarketWidget";
@@ -44,12 +43,9 @@ export default async function DashboardPage() {
 
   if (!userWithPortfolio || userWithPortfolio.portfolios.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <Navbar user={session} />
-        <main className="max-w-7xl mx-auto p-6 text-center">
-          <p className="text-slate-400">No portfolio found for your account.</p>
-        </main>
-      </div>
+      <main className="max-w-7xl mx-auto p-6 text-center text-slate-400">
+        No portfolio found for your account.
+      </main>
     );
   }
 
@@ -64,10 +60,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar user={session} />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Module 5 Chaos Simulator (Reviewer controls for Adversarial Scenario C) */}
         <ChaosSimulator currentMode={chaosMode} />
 
@@ -89,6 +82,5 @@ export default async function DashboardPage() {
         {/* Module 1: Active Asset Holdings */}
         <HoldingsTable holdings={metrics.holdings} />
       </main>
-    </div>
   );
 }
