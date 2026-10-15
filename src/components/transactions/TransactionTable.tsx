@@ -5,7 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { deleteTransactionAction } from "@/actions/transaction-actions";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Transaction, TransactionType } from "@prisma/client";
+import { TransactionType } from "@prisma/client";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -18,9 +18,22 @@ import {
   Database 
 } from "lucide-react";
 
+export interface SerializedTransaction {
+  id: string;
+  portfolioId: string;
+  ticker: string;
+  type: TransactionType;
+  units: number;
+  pricePerUnit: number;
+  amount: number;
+  date: string;
+  notes: string | null;
+  version: number;
+}
+
 interface TransactionTableProps {
   portfolioId: string;
-  transactions: Transaction[];
+  transactions: SerializedTransaction[];
   totalCount: number;
   currentPage: number;
   pageSize: number;
@@ -41,7 +54,7 @@ export default function TransactionTable({
   const [isPending, startTransition] = useTransition();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [selectedTx, setSelectedTx] = useState<SerializedTransaction | null>(null);
 
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
@@ -59,7 +72,7 @@ export default function TransactionTable({
     setIsDialogOpen(true);
   };
 
-  const handleOpenEdit = (tx: Transaction) => {
+  const handleOpenEdit = (tx: SerializedTransaction) => {
     setSelectedTx(tx);
     setIsDialogOpen(true);
   };
@@ -239,9 +252,9 @@ export default function TransactionTable({
                 portfolioId: selectedTx.portfolioId,
                 ticker: selectedTx.ticker,
                 type: selectedTx.type,
-                units: Number(selectedTx.units),
-                pricePerUnit: Number(selectedTx.pricePerUnit),
-                date: selectedTx.date.toISOString(),
+                units: selectedTx.units,
+                pricePerUnit: selectedTx.pricePerUnit,
+                date: selectedTx.date,
                 notes: selectedTx.notes,
                 version: selectedTx.version,
               }

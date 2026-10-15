@@ -89,6 +89,20 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
   const queryExecutionMs = performance.now() - startTime;
 
+  // Serialize Prisma Decimals and Dates to plain objects for Client Component
+  const serializedTransactions = transactions.map((tx) => ({
+    id: tx.id,
+    portfolioId: tx.portfolioId,
+    ticker: tx.ticker,
+    type: tx.type,
+    units: Number(tx.units),
+    pricePerUnit: Number(tx.pricePerUnit),
+    amount: Number(tx.amount),
+    date: tx.date.toISOString(),
+    notes: tx.notes,
+    version: tx.version,
+  }));
+
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-6">
@@ -104,7 +118,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       {/* Main Table with Pagination */}
       <TransactionTable
         portfolioId={portfolio.id}
-        transactions={transactions}
+        transactions={serializedTransactions}
         totalCount={totalCount}
         currentPage={page}
         pageSize={pageSize}
