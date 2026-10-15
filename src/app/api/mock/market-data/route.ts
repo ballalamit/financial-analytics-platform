@@ -21,23 +21,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Rate limit simulation (429 Too Many Requests)
-  if (mode === "ratelimit") {
-    return NextResponse.json(
-      { error: "RATE_LIMIT_EXCEEDED", message: "API limit of 60 req/min exceeded." },
-      { status: 429, headers: { "Retry-After": "30" } }
-    );
-  }
-
-  // Timeout simulation (sleep for 5 seconds to test client 3s abort controller)
-  if (mode === "timeout") {
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    return NextResponse.json(
-      { error: "GATEWAY_TIMEOUT", message: "Market data gateway timed out after 5000ms." },
-      { status: 504 }
-    );
-  }
-
   const quotes = generateLiveQuotes();
 
   return NextResponse.json({

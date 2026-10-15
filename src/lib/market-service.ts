@@ -90,9 +90,9 @@ export async function getMarketQuotes(): Promise<MarketServiceResult> {
   const quotes = generateLiveQuotes();
   const timestamp = new Date();
 
-  // Asynchronously update cache in database for offline fallback
-  try {
-    await prisma.marketDataCache.upsert({
+  // Asynchronously update cache in database in background without blocking response
+  prisma.marketDataCache
+    .upsert({
       where: { id: "MARKET_DATA_SNAPSHOT" },
       update: {
         payload: quotes as unknown as Prisma.InputJsonValue,
@@ -105,10 +105,8 @@ export async function getMarketQuotes(): Promise<MarketServiceResult> {
         fetchedAt: timestamp,
         isStale: false,
       },
-    });
-  } catch (err) {
-    console.warn("Could not cache market snapshot:", err);
-  }
+    })
+    .catch((err) => console.warn("Could not cache market snapshot:", err));
 
   return {
     quotes,

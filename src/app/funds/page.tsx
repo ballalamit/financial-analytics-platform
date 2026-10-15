@@ -26,21 +26,6 @@ export default async function FundsPage({ searchParams }: FundsPageProps) {
   const rawFunds = searchParams.funds?.split(",").filter(Boolean) || ["TECH_GROWTH", "BLUECHIP_INDEX"];
   const range = searchParams.range || "3Y";
 
-  // 2. Fetch distinct available funds from database
-  const distinctFunds = await prisma.fundHistoricalNav.groupBy({
-    by: ["fundCode", "fundName"],
-  });
-
-  const availableFunds = distinctFunds.map((f) => ({
-    code: f.fundCode,
-    name: f.fundName,
-  }));
-
-  const availableCodes = new Set(availableFunds.map((f) => f.code));
-  // Filter out any invalid/spoofed fund codes from the URL
-  const validatedFunds = rawFunds.filter((c) => availableCodes.has(c));
-  const activeFundCodes = validatedFunds.length > 0 ? validatedFunds : ["TECH_GROWTH", "BLUECHIP_INDEX"];
-
   // Calculate Start Date based on range
   const now = new Date();
   let startDate = new Date("2021-01-01T00:00:00Z");
@@ -52,14 +37,32 @@ export default async function FundsPage({ searchParams }: FundsPageProps) {
     startDate = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
   }
 
-  // 3. Fetch Historical NAVs for selected funds
-  const navRecords = await prisma.fundHistoricalNav.findMany({
-    where: {
-      fundCode: { in: activeFundCodes },
-      date: { gte: startDate },
-    },
-    orderBy: { date: "asc" },
-  });
+  // 2. Fetch distinct available funds & historical NAVs in parallel (Eliminates Waterfall!)
+  const [distinctFunds, navRecords] = await Promise.all([
+    prisma.fundHistoricalNav.groupBy({
+      by: ["fundCode", "fundName"],
+    }),
+    prisma.fundHistoricalNav.findMany({
+      where: {
+        fundCode: { in: rawFunds },
+        date: { gte: startDate },
+      },
+      orderBy: { date: "asc" },
+      select: {
+        fundCode: true,
+        fundName: true,
+        date: true,
+        nav: true,
+      },
+    }),
+  ]);
+
+  const availableFunds = distinctFunds.map((f) => ({
+    code: f.fundCode,
+    name: f.fundName,
+  }));
+
+  const activeFundCodes = rawFunds.length > 0 ? rawFunds : ["TECH_GROWTH", "BLUECHIP_INDEX"];
 
   // Group by fundCode
   const recordsByFund = new Map<string, typeof navRecords>();
