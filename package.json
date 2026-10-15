@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:seed": "tsx prisma/seed.ts",
-    "benchmark:scale": "tsx scripts/benchmark-scale.ts"
+    "benchmark:scale": "tsx scripts/benchmark-scale.ts",
+    "verify:security": "tsx scripts/verify-scenario-b.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

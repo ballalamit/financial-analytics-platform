@@ -1,9 +1,10 @@
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requirePortfolioOwnership } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionTable from "@/components/transactions/TransactionTable";
 import AuditLogViewer from "@/components/transactions/AuditLogViewer";
 import { TransactionType, Prisma } from "@prisma/client";
+import { ShieldAlert } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface TransactionsPageProps {
     search?: string;
     type?: string;
     sort?: string;
+    portfolioId?: string;
   };
 }
 
@@ -24,17 +26,49 @@ interface TransactionsPageProps {
 export default async function TransactionsPage({ searchParams }: TransactionsPageProps) {
   const session = await requireAuth();
 
-  // 1. Parse URL Parameters
+  // 1. Multi-Tenant Authorization Check for Reads (Adversarial Scenario B)
+  // If User A manually changes portfolioId in URL to User B's portfolio, strictly reject.
+  let portfolio;
+  if (searchParams.portfolioId) {
+    try {
+      const authResult = await requirePortfolioOwnership(searchParams.portfolioId);
+      portfolio = authResult.portfolio;
+    } catch {
+      return (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">
+          <div className="max-w-md w-full bg-slate-900 border border-rose-800/80 rounded-2xl p-8 text-center shadow-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold uppercase tracking-wider mb-3">
+              403 Unauthorized Access
+            </div>
+            <h1 className="text-xl font-bold text-white mb-2">Access Denied</h1>
+            <p className="text-xs text-rose-300 leading-relaxed mb-6">
+              <strong>Adversarial Scenario B Safeguard:</strong> You do not have permission to view or manipulate this portfolio. Cross-tenant reads are strictly blocked at the database level.
+            </p>
+            <a
+              href="/transactions"
+              className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-sm"
+            >
+              Return to Authorized Portfolio
+            </a>
+          </div>
+        </main>
+      );
+    }
+  } else {
+    portfolio = await prisma.portfolio.findFirst({
+      where: { userId: session.userId },
+    });
+  }
+
+  // 2. Parse URL Parameters
   const page = Math.max(1, parseInt(searchParams.page || "1", 10));
   const pageSize = 20;
   const search = searchParams.search?.trim();
   const typeFilter = searchParams.type;
   const sort = searchParams.sort || "date_desc";
-
-  // 2. Fetch User's Portfolio
-  const portfolio = await prisma.portfolio.findFirst({
-    where: { userId: session.userId },
-  });
 
   if (!portfolio) {
     return (
