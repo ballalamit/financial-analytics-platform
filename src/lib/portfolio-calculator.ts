@@ -1,4 +1,4 @@
-import { Transaction, TransactionType } from "@prisma/client";
+import { TransactionType } from "@prisma/client";
 import { MarketQuote } from "@/lib/market-service";
 
 export interface HoldingSummary {
