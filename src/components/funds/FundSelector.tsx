@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { Check, Share2 } from "lucide-react";
 
 interface AvailableFund {
@@ -24,6 +24,18 @@ export default function FundSelector({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [copied, setCopied] = useState(false);
+
+  // Sync default parameters to the URL immediately on first load if query string is empty
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.location.search) {
+      const params = new URLSearchParams();
+      if (selectedFundCodes.length > 0) {
+        params.set("funds", selectedFundCodes.join(","));
+      }
+      params.set("range", selectedRange);
+      window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
+    }
+  }, [pathname, selectedFundCodes, selectedRange]);
 
   const updateUrl = (funds: string[], range: string) => {
     startTransition(() => {
@@ -54,7 +66,13 @@ export default function FundSelector({
   };
 
   const copyShareableUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const params = new URLSearchParams();
+    if (selectedFundCodes.length > 0) {
+      params.set("funds", selectedFundCodes.join(","));
+    }
+    params.set("range", selectedRange);
+    const fullShareableUrl = `${window.location.origin}${pathname}?${params.toString()}`;
+    navigator.clipboard.writeText(fullShareableUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
