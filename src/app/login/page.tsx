@@ -74,7 +74,7 @@ function LoginForm() {
               }`}
             >
               <div className="font-semibold">Sarah Connor</div>
-              <div className="text-[10px] text-slate-400">User B (Target / IDOR Test)</div>
+              <div className="text-[10px] text-slate-400">User B</div>
             </button>
           </div>
         </div>
